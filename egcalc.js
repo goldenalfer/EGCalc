@@ -611,8 +611,18 @@ sinhrofazatronTech.prototype = technology;
 
 
 var GUI = new function() {
-	this.PointsBlock = {1: "#MovePoints", 2: "#DefPoints", 3: "#AtackPoints", 4: "#SystemPoints" };
-	this.Init = function(Flagman) {
+	this.BranchesCount = 0;	//Количество веток
+	this.RowsCount = 0;		//Количество строк в каждой ветке
+	this.ColsCount = 0;		//Количество столбцов в каждой строке
+	
+	this.PointsBlock = [];	//Список блоков, в которые вовдится количество очков в ветке
+	
+	this.Init = function(Flagman, branchesCount, rowsCount, colsCount, pointsBlocks) {
+		this.BranchesCount = branchesCount;
+		this.RowsCount = rowsCount;
+		this.ColsCount = colsCount;
+		this.PointsBlock = pointsBlocks;
+		
 		this.LevelSet(Flagman.Level);
 		this.NameSet(Flagman.Name);
 		this.PlayerSet(Flagman.Player);
@@ -638,7 +648,7 @@ var GUI = new function() {
 		$("div", a).addClass("selected").removeClass("lock");
 		if(Flagman.Cells[t-1].Rows[y-1].Count>=2) this.RowUnlock(t, y);
 		if(t==2 && Flagman.Cells[t-1].Count>=26)  this.AnchorUnlock();
-		if(this.PointsBlock[t]!==undefined) { $(this.PointsBlock[t]).text(Flagman.Cells[t-1].Count); }
+		if(this.PointsBlock[t-1]!==undefined) { $(this.PointsBlock[t-1]).text(Flagman.Cells[t-1].Count); }
 	}
 	
 	this.CellDeselect = function(t, y, x) {
@@ -646,7 +656,7 @@ var GUI = new function() {
 		$("div", a).removeClass("selected");
 		if(Flagman.Cells[t-1].Rows[y-1].Count<2) this.RowLock(t, y);
 		if(t==2 && Flagman.Cells[t-1].Count<26) this.AnchorLock();
-		if(this.PointsBlock[t]!==undefined) { $(this.PointsBlock[t]).text(Flagman.Cells[t-1].Count); }
+		if(this.PointsBlock[t-1]!==undefined) { $(this.PointsBlock[t-1]).text(Flagman.Cells[t-1].Count); }
 	}
 	
 	this.RowUnlock = function(t, y) {
@@ -692,9 +702,9 @@ var GUI = new function() {
 	}
 	
 	this.PointsPrint = function(cells) {
-		for(var i=1; i<=4; i++) {	
+		for(var i=0; i<this.PointsBlock.length; i++) {	
 			var count = 0;
-			if(cells[i]!==undefined) count = cells[i].Count;
+			if(cells[i+1]!==undefined) count = cells[i+1].Count;
 			$(this.PointsBlock[i]).text(count);
 		}
 	}
@@ -713,8 +723,8 @@ var GUI = new function() {
 				}
 			}
 			x++;
-			if(x>4) { x=1; y++; }
-			if(y>8) { y=1; t++; }
+			if(x>GUI.ColsCount) { x=1; y++; }
+			if(y>GUI.RowsCount) { y=1; t++; }
 		}
 		if(anchor && Flagman.TechAdd(1, 7, 0, "anchor")) 
 			this.CellSelect(2, 8, 1);
@@ -749,8 +759,9 @@ var Flagman = new function () {
 			this.Cells = [];
 		} else {
 			if(this.Cells[t]===undefined || this.Cells[t].Count===0) return;
-			for(var y = 7; y>= 0; y--) {
-				for(var x =0; x<4; x++) {
+			//Отмена технологий происходит с последней строки (если мы будет отменять технологии с первой строки, то сработает блок, потому что при отмене технологии проверяется, нет ли зависимых тех)
+			for(var y = GUI.RowsCount-1; y>= 0; y--) {
+				for(var x =0; x<GUI.ColsCount; x++) {
 					if(this.Cells[t].Rows[y]!==undefined && this.Cells[t].Rows[y].Cols[x]!==undefined) {
 						if(this.TechRemove(t, y, x, this.Cells[t].Rows[y].Cols[x]))
 							GUI.CellDeselect(t+1, y+1, x+1);
@@ -768,7 +779,7 @@ var Flagman = new function () {
 	this.TechAdd = function(t, y, x, c) {
 		if(Flagman.Level>=50) return false;
 		
-		if((t<0 || t>3) || (y<0 || y>7) || (x<0 || x>3)) return false;
+		if((t<0 || t>=GUI.BranchesCount) || (y<0 || y>=GUI.RowsCount) || (x<0 || x>=GUI.ColsCount)) return false;
 		if(!c) return false;
 		
 		if(y>0) {
@@ -801,12 +812,12 @@ var Flagman = new function () {
 	}
 	
 	this.TechRemove = function(t, y, x, c) {
-		if((t<0 || t>3) || (y<0 || y>7) || (x<0 || x>3)) return false;
+		if((t<0 || t>=GUI.BranchesCOunt) || (y<0 || y>=GUI.RowsCount) || (x<0 || x>=GUI.ColsCount)) return false;
 		if(!c) return false;
 		
 		if(this.Cells[t].Rows[y].Count<=2) {
 			//Проверяем, нет ли зависимых тех
-			for(var i=y+1; i<8; i++)
+			for(var i=y+1; i<GUI.RowsCount; i++)
 			{
 				if(this.Cells[t].Rows[i]!==undefined && this.Cells[t].Rows[i].Count>0) return false;
 			}
@@ -829,9 +840,9 @@ var Flagman = new function () {
 	
 	this.BuildGetBitArray = function() {
 		var bitArray = [];
-		for(var t=0; t<4; t++) {
-			for(var y=0; y<8; y++) {
-				for(var x=0; x<4; x++) {
+		for(var t=0; t<GUI.BranchesCount; t++) {
+			for(var y=0; y<GUI.RowsCount; y++) {
+				for(var x=0; x<GUI.ColsCount; x++) {
 					if(this.Cells[t]!==undefined && this.Cells[t].Rows[y]!==undefined && this.Cells[t].Rows[y].Cols[x]!==undefined) bitArray.push(1); else bitArray.push(0);
 				}
 			}
@@ -871,7 +882,6 @@ var MyURL = new function() {
 			
 		try { player = decodeURIComponent(player); } catch(e) { player = ''; }
 		
-		debugger;
 		if(name) Flagman.Name = name;
 		if(player) Flagman.Player = player;
 		return {build: build, name: name, player: player};
@@ -957,5 +967,4 @@ function Click(t, y, x) {
 		}
 	}
 	MyTooltip.Print(a);
-	//alert('Вы выбрали ячейку (' + t + ', ' + y + ', ' + x + '). Class: ' + c);
 }

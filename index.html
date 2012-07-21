@@ -11,11 +11,18 @@
 	<meta name="version" content="beta">
 	<script type="text/javascript">
 		$(document).ready(function() {
+			var branchesCount = $(".techtable").length;	//Определяем количество веток (по количеству дивов с классом techtable)
+			var rowsCount = $(".techtable:first .cell").length + $(".techtable:first .first").length;	//Определяем количество строк в ветке (по количеству дивов с классом cell или first в диве с классом techtable)
+			var colsCount = $(".techtable:first .first .tech").length;		//Определяем количество столбцов в строке (по количеству элементов с классом tech в строке с классом first в диве с классом techtable)
+			
+			//Определяем список блоков, в которые будут выводится очки ветки (Например количество очков в ветке движение. В этот список попадают все блоки с классом points)
+			var pointsBlocks = $(".techtable .points");
+			
 			//Читаем данные из адреса
 			var url = MyURL.Parse();
 			
 			//Инициализация GUI
-			GUI.Init(Flagman);
+			GUI.Init(Flagman, branchesCount, rowsCount, colsCount, pointsBlocks);
 			GUI.LoadBuild(MyURL.HexToBitArr(url.build))
 			
 			$("#CapName,#URL,#Player").focus(function() {
@@ -44,7 +51,7 @@
 				});
 				
 				Flagman.Reset();
-				GUI.Init(Flagman);
+				GUI.Init(Flagman, branchesCount, rowsCount, colsCount, pointsBlocks);
 				GUI.TechsPrint(Flagman.Techs);
 				GUI.UrlSet(MyURL.MakeUrl(Flagman));
 				return false;
@@ -118,7 +125,7 @@
 		</div>
 		<div id="techtables" style="">
 			<div class="techtable" style="margin: 0 0 0 30px;">
-				<h3>Движение (<span id="MovePoints">0</span>)</h3>
+				<h3>Движение (<span class="points">0</span>)</h3>
 				<div class="resetdiv"><a href="#reset" class="reset t1">сброс</a></div>
 				<div class="techcells">
 					<div class="first clearfix">
@@ -172,7 +179,7 @@
 				</div>
 			</div>
 			<div class="techtable" style="margin: 0 0 0 20px;">
-				<h3>Защита (<span id="DefPoints">0</span>)</h3>
+				<h3>Защита (<span class="points">0</span>)</h3>
 				<div class="resetdiv"><a href="#reset" class="reset t2">сброс</a></div>
 				<div class="techcells">
 					<div class="first clearfix">
@@ -226,7 +233,7 @@
 				</div>
 			</div>
 			<div class="techtable" style="margin: 0 0 0 20px;">
-				<h3>Атака (<span id="AtackPoints">0</span>)</h3>
+				<h3>Атака (<span class="points">0</span>)</h3>
 				<div class="resetdiv"><a href="#reset" class="reset t3">сброс</a></div>
 				<div class="techcells">
 					<div class="first clearfix">
@@ -280,7 +287,7 @@
 				</div>
 			</div>
 			<div class="techtable" style="margin: 0 0 0 20px;">
-				<h3>Системы (<span id="SystemPoints">0</span>)</h3>
+				<h3>Системы (<span class="points">0</span>)</h3>
 				<div class="resetdiv"><a href="#reset" class="reset t4">сброс</a></div>
 				<div class="techcells">
 					<div class="first clearfix">
