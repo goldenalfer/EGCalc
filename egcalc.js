@@ -310,6 +310,10 @@ var defence = new defenceTech();
 function dispersiaTech() {
 	this.Order = 4;
 	this.Name = "Рассеивание";
+	this.ValueGet = function(level) {
+		if(level===undefined) level = this.Level;
+		return 10*level;
+	}
 	this.TooltipMain = function (level) {
 		if(level===undefined) level = this.Level;
 		if(level===0) return "<div class='block'>" + this.TooltipLevelPrint(level) + "Энергетическое поле получет максимальный урон.</div>";
@@ -401,7 +405,7 @@ function invisibleTech() {
 invisibleTech.prototype = protonka;
 
 function maksimTech() {
-	this.Values = {0: 100, 1: 200, 2: 400, 3: 600, 4: 900, 5: 1200}
+	this.Values = {0: 150, 1: 300, 2: 600, 3: 900, 4: 1350, 5: 1800}
 	this.Bonuses = {1: 25, 2: 50, 3: 100, 4: 125 };
 	this.Name = "Пушка";
 	this.MaxLevel = 5;
