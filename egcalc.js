@@ -310,6 +310,10 @@ var defence = new defenceTech();
 function dispersiaTech() {
 	this.Order = 4;
 	this.Name = "Рассеивание";
+	this.ValueGet = function(level) {
+		if(level===undefined) level = this.Level;
+		return 10*level;
+	}
 	this.TooltipMain = function (level) {
 		if(level===undefined) level = this.Level;
 		if(level===0) return "<div class='block'>" + this.TooltipLevelPrint(level) + "Энергетическое поле получет максимальный урон.</div>";
